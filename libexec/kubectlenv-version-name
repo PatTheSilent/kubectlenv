@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Summary: Show the current kubectl version
+set -e
+
+[ -n "${KUBECTLENV_DEBUG}" ] && set -x
+source "${KUBECTLENV_ROOT}/libexec/helpers"
+
+[ -d "${KUBECTLENV_ROOT}/versions" ] \
+  || error_and_die "No versions of kubectl installed. Please install one with: kubectlenv install"
+
+KUBECTLENV_VERSION_FILE="$(kubectlenv-version-file)"
+KUBECTLENV_VERSION="$(cat "${KUBECTLENV_VERSION_FILE}" || true)"
+
+if [[ "${KUBECTLENV_VERSION}" =~ ^latest.*$ ]]; then
+  [[ "${KUBECTLENV_VERSION}" =~ ^latest\:.*$ ]] && regex="${KUBECTLENV_VERSION##*\:}"
+  version="$(\ls "${KUBECTLENV_ROOT}/versions" \
+    | sort -t'.' -k 1nr,1 -k 2nr,2 -k 3nr,3 \
+    | grep -e "${regex}" \
+    | head -n 1
+  )"
+  [ -n "${version}" ] || error_and_die "No installed versions of kubectl matched '${KUBECTLENV_VERSION}'"
+  KUBECTLENV_VERSION="${version}"
+fi
+
+[ -z "${KUBECTLENV_VERSION}" ] \
+  && error_and_die "Version could not be resolved (set by ${KUBECTLENV_VERSION_FILE} or kubectlenv use <version>)"
+
+version_exists() {
+  local version="${1}"
+  [ -d "${KUBECTLENV_ROOT}/versions/${version}" ]
+}
+
+if version_exists "${KUBECTLENV_VERSION}"; then
+  echo "${KUBECTLENV_VERSION}"
+else
+  error_and_die "version \`${KUBECTLENV_VERSION}' is not installed (set by ${KUBECTLENV_VERSION_FILE})"
+fi

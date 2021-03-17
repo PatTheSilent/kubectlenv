@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+[ -n "${KUBECTLENV_DEBUG}" ] && set -x
+source "${KUBECTLENV_ROOT}/libexec/helpers"
+
+[ ${#} -ne 0 ] \
+  && error_and_die "usage: kubectlenv list"
+
+[ -d "${KUBECTLENV_ROOT}/versions" ] \
+  || error_and_die "No versions available. Please install one with: kubectlenv install"
+
+[[ -x "${KUBECTLENV_ROOT}/versions" && -r "${KUBECTLENV_ROOT}/versions" ]] \
+  || error_and_die "kubectlenv versions directory is inaccessible!"
+
+print_version () {
+    if [ "$1" == "$(kubectlenv-version-name)" ]; then
+        echo "* $1 (set by $(kubectlenv-version-file))"
+    else
+        echo "  $1"
+    fi
+}
+
+for local_version in $(ls -1 "${KUBECTLENV_ROOT}/versions" | sort -t'.' -k 1nr,1 -k 2nr,2 -k 3nr,3); do
+    print_version ${local_version}
+done

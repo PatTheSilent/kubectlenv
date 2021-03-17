@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-if [ -n "$KOPSENV_DEBUG" ]; then
+if [ -n "$KUBECTLENV_DEBUG" ]; then
   export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
   set -x
 fi
@@ -11,30 +11,30 @@ readlink_f() {
   local file_name
 
   while [ "$target_file" != "" ]; do
-    cd $(dirname ${target_file})
-    file_name=$(basename ${target_file})
-    target_file=$(readlink ${file_name})
+    cd "$(dirname "${target_file}")"
+    file_name=$(basename "${target_file}")
+    target_file=$(readlink "${file_name}")
   done
 
-  echo $(pwd -P)/${file_name}
+  echo "$(pwd -P)/${file_name}"
 }
 
-if [ -z "${KOPSENV_ROOT}" ]; then
-  KOPSENV_ROOT=$(cd $(dirname $(readlink_f $0))/.. && pwd)
+if [ -z "${KUBECTLENV_ROOT}" ]; then
+  KUBECTLENV_ROOT=$(cd "$(dirname "$(readlink_f "$0")")/.." && pwd)
 else
-  KOPSENV_ROOT="${KOPSENV_ROOT%/}"
+  KUBECTLENV_ROOT="${KUBECTLENV_ROOT%/}"
 fi
-export KOPSENV_ROOT
-PATH="${KOPSENV_ROOT}/libexec:${PATH}"
+export KUBECTLENV_ROOT
+PATH="${KUBECTLENV_ROOT}/libexec:${PATH}"
 export PATH
-export KOPSENV_DIR="${PWD}"
+export KUBECTLENV_DIR="${PWD}"
 
 abort() {
   {
     if [ "$#" -eq 0 ]; then
       cat -
     else
-      echo "kopsenv: $*"
+      echo "kubectlenv: $*"
     fi
   } >&2
   exit 1
@@ -43,16 +43,16 @@ abort() {
 command="$1"
 case "$command" in
   '')            {
-                   kopsenv-version
-                   kopsenv-help
+                   kubectlenv-version
+                   kubectlenv-help
                  } | abort;;
-  -v|--version)  exec kopsenv-version;;
-  -h|--help)     exec kopsenv-help;;
-  *)             command_path="$(command -v "kopsenv-${command}" || true)"
+  -v|--version)  exec kubectlenv-version;;
+  -h|--help)     exec kubectlenv-help;;
+  *)             command_path="$(command -v "kubectlenv-${command}" || true)"
                  if [ -z "$command_path" ]; then
                    {
                      echo "no such command '$command'"
-                     kopsenv-help
+                     kubectlenv-help
                    } | abort
                  fi
                  shift 1

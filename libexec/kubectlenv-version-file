@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Usage: kubectlenv version-file
+# Summary: Detect the file that sets the current kubectlenv version
+set -e
+[ -n "${KUBECTLENV_DEBUG}" ] && set -x
+
+find_local_version_file() {
+  local root="${1}"
+  while ! [[ "${root}" =~ ^//[^/]*$ ]]; do
+    if [ -e "${root}/.kubernetes-version" ]; then
+      echo "${root}/.kubernetes-version"
+      return 0
+    fi
+    [ -n "${root}" ] || break
+    root="${root%/*}"
+  done
+  return 1
+}
+
+find_local_version_file "${KUBECTLENV_DIR}" || find_local_version_file "${HOME}" || echo "${KUBECTLENV_ROOT}/version"

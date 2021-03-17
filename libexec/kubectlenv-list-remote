@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -e
+
+[ -n "${KUBECTLENV_DEBUG}" ] && set -x
+source "${KUBECTLENV_ROOT}/libexec/helpers"
+
+if [ ${#} -ne 0 ];then
+  echo "usage: kubectlenv list-remote" 1>&2
+  exit 1
+fi
+
+platform="$(KUBECTL_platform)"
+(( "$?" )) && exit $?
+
+# This is a bit hacky since it's relying on the formatting of URLs
+# returned in JSON output from the github API, but there's no other
+# reasonable way to get a list of the current kubectl versions using
+# only curl + POSIX tools
+# Additional hack was to use kubernetes releases instead of kubectl ones.
+
+git ls-remote https://github.com/kubernetes/kubernetes.git \
+  | grep -v '\^' \
+  | awk '/refs\/tags/{ print $2}' \
+  | grep -v '-' \
+  | sed 's:v::g' \
+  | awk -F / '{print $3}' \
+  | sort -t. -rn -k1,1 -k2,2 -k3,3 -k4,4 \
+  | uniq
+

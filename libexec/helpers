@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 function error_and_die() {
-  echo -e "kopsenv: $(basename ${0}): \033[0;31m[ERROR] ${1}\033[0;39m" >&2
+  echo -e "kubectlenv: $(basename ${0}): \033[0;31m[ERROR] ${1}\033[0;39m" >&2
   exit 1
 }
 
 function warn_and_continue() {
-  echo -e "kopsenv: $(basename ${0}): \033[0;33m[WARN] ${1}\033[0;39m" >&2
+  echo -e "kubectlenv: $(basename ${0}): \033[0;33m[WARN] ${1}\033[0;39m" >&2
 }
 
 function info() {
@@ -25,7 +25,7 @@ function curlw () {
   curl ${TLS_OPT} "$@"
 }
 
-kops_platform() {
+KUBECTL_platform() {
   local arch
   case "$(uname -m)" in
     x86_64) arch='amd64';;
@@ -38,6 +38,6 @@ kops_platform() {
     Linux*)                       os="linux";;
     *)                            error_and_die "Unrecognized/unsupported kernel $(uname -s)"
   esac
-  echo "$os-$arch"
+  echo "$os/$arch"
 }
 
